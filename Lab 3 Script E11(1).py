@@ -11,6 +11,7 @@ import board
 import busio
 from digitalio import DigitalInOut, Direction, Pull
 from adafruit_pm25.i2c import PM25_I2C
+from datetime import datetime
 
 
 reset_pin = None
@@ -46,9 +47,21 @@ pm25 = PM25_UART(uart, reset_pin)
 #pm25 = PM25_I2C(i2c, reset_pin)
 
 print("Found PM2.5 sensor, reading data...")
+now = datetime.now()
+currentTime = now.strfttime("%H:%M:%S")
 
-while True:
+f = open("data.csv","w")
+metaData = ["Time","PM 1.0", "PM 2.5", "PM 10"]
+for entry in metaData:
+    f.write(entry+',')
+f.write('\n')
+
+
+
+
+while currentTime != ("0:1:1"):
     time.sleep(1)
+    
 
     try:
         aqdata = pm25.read()
@@ -58,12 +71,18 @@ while True:
         continue
 
     print()
+    print("Current Time = ", currentTime)
+    print("---------------------------------------")
     print("Concentration Units (standard)")
     print("---------------------------------------")
     print(
         "PM 1.0: %d\tPM2.5: %d\tPM10: %d"
         % (aqdata["pm10 standard"], aqdata["pm25 standard"], aqdata["pm100 standard"])
     )
+    data = [currentTime,aqdata["pm10 standard"], aqdata["pm25 standard"], aqdata["pm100 standard"]]
+    for entry in data:
+        f.write(entry+',')
+    f.write('\n')
     print("Concentration Units (environmental)")
     print("---------------------------------------")
     print(
@@ -78,3 +97,7 @@ while True:
     print("Particles > 5.0um / 0.1L air:", aqdata["particles 50um"])
     print("Particles > 10 um / 0.1L air:", aqdata["particles 100um"])
     print("---------------------------------------")
+
+f.close()
+
+    
